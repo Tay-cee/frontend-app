@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react"
 import { AppSidebar } from "@/components/app-sidebar";
 import {
@@ -19,15 +17,11 @@ import { Separator } from "@/components/ui/separator";
 import { getColumns, type Employee } from "@/components/columns";
 import { DataTable } from "@/components/data-table";
 import useSWR from "swr";
+import { apiFetch } from "@/lib/api-client";
 
 
-const fetcher = async (url: string) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("Not authenticated");
-
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+const fetcher = async (path: string) => {
+  const res = await apiFetch(path);
 
   if (!res.ok) throw new Error("Failed to fetch employees");
 
@@ -40,26 +34,22 @@ export default function Dashboard() {
         error,
         isLoading,
         mutate,
-    } = useSWR<Employee[]>("http://localhost:5188/api/Employees", fetcher);
+    } = useSWR<Employee[]>("/api/Employees", fetcher);
 
     const deleteEmployee = React.useCallback(
-    async (id: number) => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+        async (id: number) => {
+            try {
+                const res = await apiFetch(`/api/Employees/${id}`, {
+                    method: "DELETE",
+                });
 
-            const res = await fetch(`http://localhost:5188/api/Employees/${id}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (res.ok) {
-                mutate(employees.filter((e) => e.id !== id));
+                if (res.ok) {
+                    mutate(employees.filter((e) => e.id !== id));
+                }
+            } catch (err) {
+                console.error("Failed to delete:", err);
             }
-        } catch (err) {
-            console.error("Failed to delete:", err);
-        }
-    },
+        },
         [employees, mutate]
     );
 

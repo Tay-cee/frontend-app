@@ -19,6 +19,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { CaretUpDownIcon, SparkleIcon, CheckCircleIcon, CreditCardIcon, BellIcon, SignOutIcon } from "@phosphor-icons/react"
+import { useAuth } from "@/hooks/use-auth"
 
 export function NavUser({
   user,
@@ -30,6 +31,12 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { logout } = useAuth()
+
+  function handleLogout() {
+    logout()
+    window.location.href = "/login"
+  }
 
   return (
     <SidebarMenu>
@@ -96,7 +103,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <SignOutIcon
               />
               Log out

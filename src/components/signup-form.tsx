@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
+import { useAuth } from "@/hooks/use-auth"
+import { API_BASE_URL } from "@/lib/api-client"
 
-const API_URL = "http://localhost:5188/api/Auth/register"
+const API_URL = `${API_BASE_URL}/api/auth/register`
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [username, setUsername] = useState("")
@@ -24,6 +26,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth()
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -44,21 +47,24 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
     try {
       const response = await fetch(API_URL, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Accept: "*/*",
         },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ userName: username, email, password }),
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null)
         throw new Error(
-          errorData?.message || `Registration failed (${response.status})`
+          errorData?.error || errorData?.message || `Registration failed (${response.status})`
         )
       }
 
-      window.location.href = "/login"
+      const data = await response.json()
+      login(data.accessToken)
+      window.location.href = "/dashboard"
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"

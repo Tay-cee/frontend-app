@@ -13,6 +13,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { RowsIcon, TerminalIcon } from "@phosphor-icons/react"
+import { apiFetch } from "@/lib/api-client"
 
 
 const data = {
@@ -41,21 +42,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   React.useEffect(() => {
     async function fetchUser() {
-      const token = localStorage.getItem("token")
-      if (!token) return
+      if (!localStorage.getItem("token")) return
 
       try {
-        const res = await fetch("http://localhost:5188/api/Auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const res = await apiFetch("/api/auth/me")
 
         if (!res.ok) return
 
         const data = await res.json()
         setUser({
-          name: data.username,
+          name: data.userName,
           email: data.email,
           avatar: "/avatars/shadcn.jpg",
         })

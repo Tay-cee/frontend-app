@@ -17,14 +17,15 @@ import { Input } from "@/components/ui/input"
 import type React from "react"
 import { useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
+import { API_BASE_URL } from "@/lib/api-client"
 
-const API_URL = "http://localhost:5188/api/Auth/login"
+const API_URL = `${API_BASE_URL}/api/auth/login`
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
 
@@ -36,32 +37,31 @@ export function LoginForm({
     e.preventDefault()
     setError(null)
     setIsLoading(true)
-    
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Accept: "*/*",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null)
         throw new Error(
-          errorData?.message || `Login failed (${response.status})`
+          errorData?.error || errorData?.message || `Login failed (${response.status})`
         )
       }
 
       const data = await response.json()
 
-      if (data.token) {
-        login(data.token)
+      if (data.accessToken) {
+        login(data.accessToken)
         window.location.href = "/dashboard"
       }
-
-      console.log("Login successful:", data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
@@ -75,21 +75,21 @@ export function LoginForm({
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
           <CardDescription>
-            Enter your username and password below to login to your account
+            Enter your email and password below to login to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="username">Username</FieldLabel>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
-                  id="username"
-                  type="text"
-                  placeholder="Username"
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                 />
               </Field>
