@@ -16,6 +16,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { getColumns, type Employee } from "@/components/columns";
 import { DataTable } from "@/components/data-table";
+import { AddEmployeeSheet } from "@/components/add-employee-sheet";
 import useSWR from "swr";
 import { apiFetch } from "@/lib/api-client";
 
@@ -58,13 +59,20 @@ export default function Dashboard() {
         [deleteEmployee]
     );
 
+    const addEmployee = React.useCallback(
+        (employee: Employee) => {
+            mutate([...employees, employee], { revalidate: false });
+        },
+        [employees, mutate]
+    );
+
     const errorMessage = error instanceof Error ? error.message : error ? "Something went wrong" : null;
 
     return (
     <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator
@@ -82,6 +90,9 @@ export default function Dashboard() {
                 </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
+            </div>
+            <div className="px-4">
+            <AddEmployeeSheet onCreated={addEmployee} />
             </div>
         </header>
 
